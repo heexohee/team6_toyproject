@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>하이루! 난 소희얌</title>
+    <link rel="stylesheet" type="text/css" href="../static/sohee_styles.css">
+    
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery 라이브러리 추가 -->
+
+    <script>
+        $(document).ready(function () {
+            set_temp();
+            show_comment();
+        });
+
+        function set_temp() {
+            fetch("http://spartacodingclub.shop/sparta_api/weather/seoul")
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log(data);
+                });
+        }
+
+        function save_comment() {
+            let name = $('#name').val();
+            let comment = $('#comment').val();
+            let password = $('#password').val();
+            if (name == "") {
+                alert("닉네임을 입력하세요.");
+            } else {
+                var currentDate = new Date().toLocaleDateString('ko-KR');
+                var currentTime = new Date().toLocaleTimeString('ko-KR', {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    hourCycle: 'h23'
+                });
+
+                let formData = new FormData();
+                formData.append("name_give", name);
+                formData.append("comment_give", comment);
+                formData.append("password_give", password);
+                formData.append("currentDate_give", currentDate);
+                formData.append("currentTime_give", currentTime);
+
+                fetch('/guestbook', { method: "POST", body: formData }).then((res) => res.json()).then((data) => {
+                    alert(data["msg"]);
+                    window.location.reload();
+                });
+            }
+        }
+
+
+        function delete_comment(a) {
+            let comment = a
+
+            console.log(check_password);
+
+            $.ajax({
+                type: 'DELETE',
+                url: '/guestbook',
+                data: {
+                    comment_give: comment
+                },
+                success: function (response) {
+                    alert(response['msg']);
+                    window.location.reload();
+                }
+            });
+        }
+
+        function show_comment() {
+            fetch('/guestbook')
+                .then((res) => res.json())
+                .then((data) => {
+                    let rows = data['result'];
+                    $('#comment-list').empty();
+                    let currentDate2 = '';
+                    let currentDate1 = null; // 초기값 설정
+
+                    rows.forEach((a) => {
+                        let name = a['name'];
+                        let comment = a['comment'];
+                        let currentDate1 = a['currentDate'];
+                        let currentTime = a['currentTime'];
+                        let temp_html = '';
+
+                        if (currentDate1 && currentDate1 !== currentDate2) {
+                            temp_html += `<div class="Date">---------------------<${currentDate1}>---------------------</div>`;
+                        }
+
+                        temp_html += `<div class="message sent" onmouseover="showOverlay(this)" onmouseout="hideOverlay(this)">
+                                        <div class="sender">${name}</div>
+                                        <div class="content">${comment}</div>
+                                        <span class="timestamp">${currentTime}</span>
+                                        <div class="overlay" onclick="closeModal(this)">
+                                            <input type="text" class="input-password" id="check_password" placeholder="비밀번호">
+                                            <button class="delete-button" type="button" onclick="delete_comment('${comment}')">삭제</button>
+                                        </div>
+                                    </div>`;
+
+                        currentDate2 = currentDate1;
+                        $('#comment-list').append(temp_html);
+                        // 스크롤을 최신 메시지로 이동
+                        let chatContainer = document.getElementById('comment-list');
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    });
+                });
+        }
+
+    </script>
+
+</head>
+
+<body>
+    <div class="cover">
+        <div class="container">
+            <div class="profile">
+                <div class="image">
+                    <img src="../static/image/sohee_photo.jpg" alt="정소희 프로필 이미지">
+                </div>
+                
+                <div class="name">정소희</div>
+                <div class="exp">
+                    <div> MBTI: ENTP </div>
+                    <div> 인스타: @heesoheesohee </div>
+                    <div> 취미: 배드민턴🏸, 음반수집💿 </div>
+                    <div> 좋아하는 것: 게임👾, 보라색💜</div>
+                </div>
+                <div class="history">
+                    <div class="music">
+                        <div class="NOWPLAYING">🎵 NOW PLAYING</div>
+                        <div class="musicname">공항 가는 길 ✈️</div>
+                        <div class="artist">- 마이 앤트 메리</div>
+
+                        <div class="dDay">000일 00시 00분 00초</div>
+                        <script src="src/index.js"></script>
+                    </div>
+                </div>
+            </div>
+            <div class="page">
+                <div class="news">
+                    <div class="title">💜보라곤듀님의 페이지💜</div>
+                   
+                    <ul>
+                        <li>
+                            협업 스타일: 모르는 건 꼭 물어보고! 
+                            <br>효율적인 방법을 찾기위해 여러 아이디어를 제안해요!
+                        </li>
+                        <li>
+                           귀여운거 좋아합니다. 🐱고양이, 🐶강아지, 🕊새
+                        </li>
+                        <li>
+                            말 장난과 토론을 좋아하는 찐 ENTP! 
+                        </li>
+                        <li>
+                            언젠가 우주여행을 가고 싶어요!
+                        </li>
+                        <li>
+                            락페 갈 사람??!
+                        </li>
+                    </ul>
+            
+                </div>
+                <div class="room">
+                    <div class="title">💜방명록💜</div>
+                    <div class="chat-container" id="comment-list">
+                        <div class="Date">------------------------------&lt;2007. 8. 22.&gt;------------------------------</div>
+                        <div class="message sent" onmouseover="showOverlay(this)" onmouseout="hideOverlay(this)">
+                            <div class="sender">소희</div>
+                            <div class="content">얘두라 ㅎㅇ</div>
+                            <span class="timestamp">오후 8:22</span>
+                            <div class="overlay" onclick="closeModal(this)" style="display: none;">
+                                <input type="text" class="input-password" data-comment="ㅂㅈㄷ" placeholder="비밀번호">
+                                <button class="delete-button" type="button" onclick="delete_comment(this)">삭제</button>
+                            </div>
+                        </div>
+                        <div class="message sent" onmouseover="showOverlay(this)" onmouseout="hideOverlay(this)">
+                            <div class="sender">소희</div>
+                            <div class="content">메세지를 남겨줘!</div>
+                            <span class="timestamp">오후 8:22</span>
+                            <div class="overlay" onclick="closeModal(this)" style="display: none;">
+                                <input type="text" class="input-password" data-comment="ㅋㅌㅊ" placeholder="비밀번호">
+                                <button class="delete-button" type="button" onclick="delete_comment(this)">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <input type="text" class="input-nickname" id="name" placeholder="닉네임">
+                    <input type="text" class="input-password" id="password" placeholder="비밀번호">
+                    <input type="text" class="input-message" id="comment" placeholder="메시지를 입력하세요">
+                    <button class="input-button" onclick="save_comment()">기록하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="index">
+        <button class="home" onclick="window.location.href = '/'">홈</button>
+        <button class="eunji" onclick="window.location.href = '/eunji'">은지</button>
+        <button class="namgyu" onclick="window.location.href = '/namgyu'">남규</button>
+        <button class="jeongeun" onclick="window.location.href = '/jeongeun'">정은</button>
+        <button class="sohee" onclick="window.location.href = '/sohee'">소희</button>
+    </div>
+    <script>
+        function showOverlay(element) {
+            var overlay = element.querySelector('.overlay');
+            overlay.style.display = 'block';
+        }
+
+        function hideOverlay(element) {
+            var overlay = element.querySelector('.overlay');
+            overlay.style.display = 'none';
+        }
+        const clockTitle = document.querySelector(".dDay");
+        function christmasClock() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const christmas = new Date(`${year + 1}-6-12`);
+
+        const untilChristmas = new Date(christmas - today);
+        const day = String(Math.floor(untilChristmas / (1000 * 3600 * 24)));
+        const hour = String(
+          Math.floor((untilChristmas / (1000 * 3600)) % 24)
+        ).padStart(2, "0");
+        const minute = String(
+          Math.floor((untilChristmas / (1000 * 60)) % 60)
+        ).padStart(2, "0");
+        const second = String(
+          Math.floor((untilChristmas / 1000) % 60)
+        ).padStart(2, "0");
+        clockTitle.innerText = `${day}일 ${hour}시 ${minute}분 ${second}초`;
+      }
+
+      setInterval(christmasClock, 1000);
+    </script>
+</body>
+
+</html>
